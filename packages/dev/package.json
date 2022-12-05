@@ -1,0 +1,9 @@
+{
+  "name": "dev",
+  "private": "true",
+  "dependencies": {
+    "solid-js": "^1.6.2",
+    "z4": "workspace:*",
+    "zod": "^3.19.1"
+  }
+}

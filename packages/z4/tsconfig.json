@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "NodeNext",
+        "paths": {
+            "~": ["./src"]
+        },
+        "types": [
+            "node"
+        ],
+        "allowJs": false,
+        "strict": true
+    }
+}
