@@ -3,7 +3,7 @@
   "private": "true",
   "dependencies": {
     "solid-js": "^1.6.2",
-    "z4": "workspace:*",
+    "z4": "workspace:0.0.0",
     "zod": "^3.19.1"
   }
 }

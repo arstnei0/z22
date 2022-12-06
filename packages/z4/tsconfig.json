@@ -1,13 +1,12 @@
 {
-    "compilerOptions": {
-        "moduleResolution": "NodeNext",
-        "paths": {
-            "~": ["./src"]
-        },
-        "types": [
-            "node"
-        ],
-        "allowJs": false,
-        "strict": true
-    }
+	"compilerOptions": {
+		"moduleResolution": "NodeNext",
+		"paths": {
+			"~": ["./src"]
+		},
+		"types": ["node", "fs-extra"],
+		"allowJs": false,
+		"strict": true,
+		"esModuleInterop": true
+	}
 }

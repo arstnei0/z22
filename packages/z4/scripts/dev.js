@@ -8,5 +8,14 @@ build({
 	dts: true,
 	format: ["esm"],
 	minify: false,
-	target: 'node16'
+})
+
+build({
+	watch: true,
+	entry: {
+		server: "src/core/index.ts",
+	},
+	dts: true,
+	format: ["esm"],
+	minify: false,
 })

@@ -2,7 +2,7 @@
 import * as process from 'node:process'
 import sade from 'sade'
 import * as vite from 'vite'
-import { Mode, run } from '../core/index'
+import { Mode, run } from '../core/index.js'
 
 const p = sade('z4')
 
