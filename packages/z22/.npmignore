@@ -1,0 +1,4 @@
+src
+.prettierignore
+.prettierrc.cjs
+vite.config.ts

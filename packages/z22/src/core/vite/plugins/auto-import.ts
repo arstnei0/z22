@@ -5,9 +5,11 @@ export const createAutoImportVitePlugin = () =>
 		imports: [
 			"solid-js",
 			{
-				z4: [],
+				z22: [
+					"definePage"
+				],
 				zod: [["*", "z"]],
 			},
 		],
-		dts: ".z4/auto-imports.d.ts",
+		dts: ".z22/auto-imports.d.ts",
 	})

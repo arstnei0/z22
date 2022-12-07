@@ -5,7 +5,7 @@ import {
 	ServerResponse,
 } from "http"
 import { createRouter } from "./router.js"
-import { HTTPMethod } from "find-my-way"
+import Router, { HTTPMethod } from "find-my-way"
 
 const WrapperV =
 	z.custom<
@@ -24,7 +24,7 @@ const OptionsV = z.object({
 type OptionsI = z.input<typeof OptionsV>
 type Options = z.output<typeof OptionsV>
 
-export type Handler = (req: IncomingMessage, res: ServerResponse) => undefined
+export type HttpHandler = (req: IncomingMessage, res: ServerResponse) => void
 
 export const httpMethods = [
 	"ACL",
@@ -81,7 +81,7 @@ const runWrapper =
 		)
 	}
 
-export const createZ4Server = (optionsI: OptionsI) => {
+export const createZ22Server = (optionsI: OptionsI) => {
 	const options = OptionsV.parse(optionsI) as Options
 
 	const router = createRouter()
@@ -99,16 +99,18 @@ export const createZ4Server = (optionsI: OptionsI) => {
 
 	const notFoundHandler = (req: IncomingMessage, res: ServerResponse) => {
 		res.writeHead(404)
-		res.end('not found')
+		res.end("not found")
 	}
 
-	router.on(httpMethods, '*', notFoundHandler)
+	router.on(httpMethods, "*", notFoundHandler)
 
 	return {
 		start: () => {
 			httpServer.listen(options.port || 3000, () => {})
 		},
-		route: () => {},
 		router,
+		layouts: {}
 	}
 }
+
+export type Z22Server = ReturnType<typeof createZ22Server>

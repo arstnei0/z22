@@ -7,15 +7,23 @@ import {
 	mergeConfig,
 } from "vite"
 import z from "zod"
-import { createZ4Server, httpMethods } from "./server/index.js"
-import { Z4Error } from "../utils/index.js"
-import { createAutoImportVitePlugin } from "./vite/plugins/auto-import.js"
+import { createZ22Server, httpMethods, Z22Server } from "./server/index"
+import { Z22Error } from "../utils/index"
+import { createAutoImportVitePlugin } from "./vite/plugins/auto-import"
 import fse from "fs-extra"
 import path from "path"
-import { createSolidVitePlugin } from "./vite/plugins/solid.js"
-import fg from "fast-glob"
-import { IncomingMessage, ServerResponse } from "http"
+import { createSolidVitePlugin } from "./vite/plugins/solid"
 import { HTTPMethod } from "find-my-way"
+import { generateTsHelpers } from "./tsconfig"
+import {
+	DEV_LOGGER_CONFIG,
+	logger,
+	PROD_LOGGER_CONFIG,
+	setLogger,
+} from "../utils/logger"
+import PinoPretty from "pino-pretty"
+import pino from "pino"
+import { startRouting } from "./routes"
 
 export enum Mode {
 	Development = "development",
@@ -32,7 +40,7 @@ const ConfigV = z.object({
 		.optional(),
 })
 
-const ensureAndClearZ4Directory = async (dir: string) => {
+const ensureAndClearZ22Directory = async (dir: string) => {
 	await fse.ensureDir(dir)
 	await fse.emptyDir(dir)
 }
@@ -41,7 +49,7 @@ export const run = async (mode: Mode) => {
 	mode = ModeV.parse(mode)
 
 	const workDir = process.cwd()
-	const z4Dir = path.join(workDir, ".z4")
+	const z22Dir = path.join(workDir, ".z22")
 	const env = loadEnv(mode, workDir)
 
 	let configFile: Awaited<ReturnType<typeof loadConfigFromFile>>
@@ -53,33 +61,46 @@ export const run = async (mode: Mode) => {
 				mode,
 				ssrBuild: true,
 			},
-			"z4.config.ts",
+			"z22.config.ts",
 			workDir
 		)
 	} catch (e) {
-		throw new Z4Error("Config file not found")
+		throw new Z22Error("Config file not found")
 	}
 
 	const config = ConfigV.parse(configFile?.config)
 
+	await ensureAndClearZ22Directory(z22Dir)
+
+	await generateTsHelpers(path.join(workDir, ".z22"))
+
 	const globalViteConfig: ViteInlineConfig = {
 		plugins: [createAutoImportVitePlugin(), createSolidVitePlugin()],
+		ssr: {
+			external: ["z22"],
+		},
 	}
 
-	await ensureAndClearZ4Directory(z4Dir)
+	const isDev = mode === Mode.Development
 
-	if (mode === Mode.Development) {
+	const loggerConfig = isDev ? DEV_LOGGER_CONFIG : PROD_LOGGER_CONFIG
+	const loggerStream = PinoPretty(loggerConfig)
+	setLogger(pino(loggerStream))
+
+	if (isDev) {
 		const devViteConfig: ViteInlineConfig = {
 			server: {
 				middlewareMode: true,
 			},
+			appType: "custom",
+			logLevel: "error",
 		}
 
 		const viteServer = await createServer(
 			mergeConfig(globalViteConfig, devViteConfig)
 		)
 
-		const z4Server = createZ4Server({
+		const z22Server = createZ22Server({
 			port: config.server?.port,
 			wrappers: (internal) => [
 				...internal,
@@ -87,37 +108,9 @@ export const run = async (mode: Mode) => {
 			],
 		})
 
-		z4Server.start()
+		z22Server.start()
 
-		const glob = await fg("src/routes/**/*.ts", {
-			cwd: workDir,
-		})
-
-		glob.forEach(async (filePath) => {
-			const module = await viteServer.ssrLoadModule(filePath)
-
-			const pathArray = filePath.split(path.sep)
-			pathArray.splice(0, 2)
-			const pathArraySliced = pathArray
-				.map((p) =>
-					p.includes(".") ? p.substring(0, p.lastIndexOf(".")) : p
-				)
-				.filter((p) => p != "index")
-
-			const routePathWithExt = pathArraySliced.join(path.sep)
-			const routePath = "/" + routePathWithExt
-
-			Reflect.ownKeys(module).forEach((method) => {
-				if (method === "default")
-					z4Server.router.on("GET", routePath, module.default)
-				if (method in httpMethods)
-					z4Server.router.on(
-						method as HTTPMethod,
-						routePath,
-						Reflect.get(module, method)
-					)
-			})
-		})
+		startRouting(workDir, viteServer, z22Server)
 	} else if (mode === Mode.Production) {
 		const bulidViteConfig: ViteInlineConfig = {}
 
@@ -125,4 +118,5 @@ export const run = async (mode: Mode) => {
 	}
 }
 
-export { Handler } from './server/index.js'
+export type { HttpHandler } from "./server"
+export { definePage } from "./ssr"

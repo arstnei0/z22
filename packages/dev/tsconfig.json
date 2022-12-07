@@ -1,0 +1,3 @@
+{
+    "extends": "./.z22/tsconfig.json"
+}

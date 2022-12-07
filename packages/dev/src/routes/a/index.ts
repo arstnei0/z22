@@ -1,5 +1,5 @@
-import { Handler } from 'z4'
+// import { Handler } from '../z22'
 
-export default ((req, res) => {
-    res.end('A')
-}) as Handler
+// export default ((req, res) => {
+//     res.end('A')
+// }) as Handler

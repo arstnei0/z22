@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "Node",
+		"paths": {
+			"~": ["./src"]
+		},
+		"types": ["node", "fs-extra", "dedent"],
+		"allowJs": false,
+		"strict": true,
+		"esModuleInterop": true,
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js"
+	}
+}
