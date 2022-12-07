@@ -24,6 +24,7 @@ import {
 import PinoPretty from "pino-pretty"
 import pino from "pino"
 import { startRouting } from "./routes"
+import figlet from 'figlet'
 
 export enum Mode {
 	Development = "development",
@@ -48,9 +49,9 @@ const ensureAndClearZ22Directory = async (dir: string) => {
 export const run = async (mode: Mode) => {
 	mode = ModeV.parse(mode)
 
-	const workDir = process.cwd()
-	const z22Dir = path.join(workDir, ".z22")
-	const env = loadEnv(mode, workDir)
+	const cwd = process.cwd()
+	const z22Dir = path.join(cwd, ".z22")
+	const env = loadEnv(mode, cwd)
 
 	let configFile: Awaited<ReturnType<typeof loadConfigFromFile>>
 
@@ -62,7 +63,7 @@ export const run = async (mode: Mode) => {
 				ssrBuild: true,
 			},
 			"z22.config.ts",
-			workDir
+			cwd
 		)
 	} catch (e) {
 		throw new Z22Error("Config file not found")
@@ -72,7 +73,7 @@ export const run = async (mode: Mode) => {
 
 	await ensureAndClearZ22Directory(z22Dir)
 
-	await generateTsHelpers(path.join(workDir, ".z22"))
+	await generateTsHelpers(path.join(cwd, ".z22"))
 
 	const globalViteConfig: ViteInlineConfig = {
 		plugins: [createAutoImportVitePlugin(), createSolidVitePlugin()],
@@ -88,6 +89,11 @@ export const run = async (mode: Mode) => {
 	setLogger(pino(loggerStream))
 
 	if (isDev) {
+		console.log(figlet.textSync('Z22', {
+			font: 'Ghost',
+			width: 800
+		}))
+
 		const devViteConfig: ViteInlineConfig = {
 			server: {
 				middlewareMode: true,
@@ -110,7 +116,7 @@ export const run = async (mode: Mode) => {
 
 		z22Server.start()
 
-		startRouting(workDir, viteServer, z22Server)
+		startRouting(cwd, viteServer, z22Server)
 	} else if (mode === Mode.Production) {
 		const bulidViteConfig: ViteInlineConfig = {}
 
