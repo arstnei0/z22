@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "dev",
+			"path": "packages/z22",
+			"problemMatcher": [],
+			"label": "npm: dev - packages/z22",
+			"detail": "vite build --watch & pnpm dev:types"
+		}
+	]
+}

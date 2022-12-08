@@ -1,3 +1,9 @@
+import boxen from "boxen"
+import colors from "colors"
+import fse from "fs-extra"
+import path from "path"
+import pino from "pino"
+import PinoPretty from "pino-pretty"
 import {
 	build,
 	createServer,
@@ -7,24 +13,20 @@ import {
 	mergeConfig,
 } from "vite"
 import z from "zod"
-import { createZ22Server, httpMethods, Z22Server } from "./server/index"
 import { Z22Error } from "../utils/index"
-import { createAutoImportVitePlugin } from "./vite/plugins/auto-import"
-import fse from "fs-extra"
-import path from "path"
-import { createSolidVitePlugin } from "./vite/plugins/solid"
-import { HTTPMethod } from "find-my-way"
-import { generateTsHelpers } from "./tsconfig"
 import {
 	DEV_LOGGER_CONFIG,
-	logger,
 	PROD_LOGGER_CONFIG,
 	setLogger,
 } from "../utils/logger"
-import PinoPretty from "pino-pretty"
-import pino from "pino"
+import { terminalLogo } from "../utils/logo"
+import { LayoutManager } from "./layouts"
 import { startRouting } from "./routes"
-import figlet from 'figlet'
+import { createZ22Server } from "./server/index"
+import { generateTsHelpers } from "./tsconfig"
+import { createAutoImportVitePlugin } from "./vite/plugins/auto-import"
+import { createSolidVitePlugin } from "./vite/plugins/solid"
+import { createZ22VitePlugin } from "./vite/plugins/z22"
 
 export enum Mode {
 	Development = "development",
@@ -89,10 +91,15 @@ export const run = async (mode: Mode) => {
 	setLogger(pino(loggerStream))
 
 	if (isDev) {
-		console.log(figlet.textSync('Z22', {
-			font: 'Ghost',
-			width: 800
-		}))
+		console.log(colors.rainbow(terminalLogo))
+
+		let layoutManager: LayoutManager = (() => {
+			throw new Z22Error(
+				"The layout manager is being used before being set"
+			)
+		}) as any
+
+		const [giveLayoutManagerToZ22VitePlugin, z22VitePlugin] = createZ22VitePlugin(cwd)
 
 		const devViteConfig: ViteInlineConfig = {
 			server: {
@@ -100,6 +107,7 @@ export const run = async (mode: Mode) => {
 			},
 			appType: "custom",
 			logLevel: "error",
+			plugins: [z22VitePlugin],
 		}
 
 		const viteServer = await createServer(
@@ -116,7 +124,10 @@ export const run = async (mode: Mode) => {
 
 		z22Server.start()
 
-		startRouting(cwd, viteServer, z22Server)
+		await startRouting(cwd, viteServer, z22Server, (_) => {
+			layoutManager = _
+			giveLayoutManagerToZ22VitePlugin(layoutManager)
+		})
 	} else if (mode === Mode.Production) {
 		const bulidViteConfig: ViteInlineConfig = {}
 
@@ -125,4 +136,4 @@ export const run = async (mode: Mode) => {
 }
 
 export type { HttpHandler } from "./server"
-export { definePage } from "./ssr"
+// export { definePage } from "./ssr"

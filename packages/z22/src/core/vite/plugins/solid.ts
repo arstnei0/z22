@@ -1,10 +1,10 @@
-import solidVitePlugin from 'vite-plugin-solid'
+import solidVitePlugin from "vite-plugin-solid"
 
 export const createSolidVitePlugin = () => {
-    return solidVitePlugin({
-        ssr: true,
-        solid: {
-            generate: 'ssr'
-        }
-    })
+	return solidVitePlugin({
+		ssr: true,
+		solid: {
+			generate: "ssr",
+		},
+	})
 }

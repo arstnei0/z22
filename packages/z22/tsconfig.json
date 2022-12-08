@@ -9,6 +9,8 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"jsx": "preserve",
-		"jsxImportSource": "solid-js"
+		"jsxImportSource": "solid-js",
+		"target": "ES6",
+		"module": "esnext"
 	}
 }

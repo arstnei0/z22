@@ -19,7 +19,5 @@ export default defineConfig({
 			ssr: true,
 		}),
 	],
-	ssr: {
-
-	}
+	ssr: {},
 })

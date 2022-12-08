@@ -5,7 +5,7 @@ import path from "path"
 import { HTTPMethod } from "find-my-way"
 import { httpMethods, Z22Server } from "./server"
 import { logger } from "../utils/logger"
-import { startLayouting } from "./layouts"
+import { LayoutManager, startLayouting } from "./layouts"
 import { Z22Error } from "../utils"
 
 const addRoutesToZ22Server = (
@@ -50,7 +50,8 @@ const getRoutePathFromFilePath = (filePath: string) => {
 export const startRouting = async (
 	cwd: string,
 	viteServer: ViteDevServer,
-	z22Server: Z22Server
+	z22Server: Z22Server,
+	setLayoutManager: (layoutManager: LayoutManager) => void
 ) => {
 	const fileToRoutes = new Map<string, Record<HTTPMethod, any>>()
 	const addFile = async (filePath: string) => {
@@ -76,6 +77,7 @@ export const startRouting = async (
 	}
 
 	const layoutManager = await startLayouting(cwd, viteServer, z22Server)
+	setLayoutManager(layoutManager)
 	const files = await fg("src/routes/**/*.{ts,tsx}", {
 		cwd: cwd,
 	})

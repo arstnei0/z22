@@ -24,7 +24,7 @@ declare global {
   const createSelector: typeof import('solid-js')['createSelector']
   const createSignal: typeof import('solid-js')['createSignal']
   const createStore: typeof import('solid-js/store')['createStore']
-  const definePage: typeof import('z22')['definePage']
+  const definePage: typeof import('virtual:z22/definePage.tsx')['definePage']
   const hydrate: typeof import('solid-js/web')['hydrate']
   const indexArray: typeof import('solid-js')['indexArray']
   const isServer: typeof import('solid-js/web')['isServer']

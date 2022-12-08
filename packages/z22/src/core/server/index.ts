@@ -109,7 +109,7 @@ export const createZ22Server = (optionsI: OptionsI) => {
 			httpServer.listen(options.port || 3000, () => {})
 		},
 		router,
-		layouts: {}
+		layouts: {},
 	}
 }
 
