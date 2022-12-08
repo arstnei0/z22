@@ -7,6 +7,7 @@ import { httpMethods, Z22Server } from "./server"
 import { logger } from "../utils/logger"
 import { LayoutManager, startLayouting } from "./layouts"
 import { Z22Error } from "../utils"
+import { generateFuncToGetSimplifiedPathFromFilePath } from "../utils/path"
 
 const addRoutesToZ22Server = (
 	z22Server: Z22Server,
@@ -30,22 +31,12 @@ const addRoutesFromModule = (
 
 const routePathIdentifier = `src${path.sep}routes`
 
-const getRoutePathFromFilePath = (filePath: string) => {
-	const pathArray = filePath.split(path.sep)
-	const indexOfSrc = pathArray.indexOf("src")
-	const indexOfRoutes = pathArray.indexOf("routes")
-	if (indexOfSrc + 1 !== indexOfRoutes) return
+const getRoutePathFromFilePath = generateFuncToGetSimplifiedPathFromFilePath(
+	"routes",
+	true
+)
 
-	pathArray.splice(0, indexOfRoutes + 1)
-	const pathArraySliced = pathArray
-		.map((p) => path.parse(p).name)
-		.filter((p) => p != "index")
-
-	const routePathWithExt = pathArraySliced.join("/")
-	const routePath = "/" + routePathWithExt
-
-	return routePath
-}
+export let workingPagePath: string
 
 export const startRouting = async (
 	cwd: string,
@@ -54,9 +45,18 @@ export const startRouting = async (
 	setLayoutManager: (layoutManager: LayoutManager) => void
 ) => {
 	const fileToRoutes = new Map<string, Record<HTTPMethod, any>>()
+
+	const layoutManager = await startLayouting(cwd, viteServer, z22Server)
+	setLayoutManager(layoutManager)
+	const files = await fg("src/routes/**/*.{ts,tsx}", {
+		cwd: cwd,
+	})
+
 	const addFile = async (filePath: string) => {
 		const routePath = getRoutePathFromFilePath(filePath)
 		if (!routePath) return
+
+		workingPagePath = filePath
 
 		let module = await viteServer.ssrLoadModule(filePath, {
 			fixStacktrace: true,
@@ -74,15 +74,13 @@ export const startRouting = async (
 				colors.italic(colors.blue(routePath)) +
 				colors.gray("` added")
 		)
+
+		workingPagePath = ""
 	}
 
-	const layoutManager = await startLayouting(cwd, viteServer, z22Server)
-	setLayoutManager(layoutManager)
-	const files = await fg("src/routes/**/*.{ts,tsx}", {
-		cwd: cwd,
-	})
-
-	files.forEach(addFile)
+	for (let filePath of files) {
+		await addFile(filePath)
+	}
 
 	viteServer.watcher.on("add", async (path) => {
 		await addFile(path)
@@ -94,22 +92,12 @@ export const startRouting = async (
 
 		fileToRoutes.forEach(async (routes, rp) => {
 			if (routePath === rp) {
-				const module = await viteServer.ssrLoadModule(p)
 				z22Server.router.off(
 					Object.keys(routes) as HTTPMethod[],
 					routePath
 				)
-				routes = {} as Record<HTTPMethod, any>
-				addRoutesFromModule(module, routes)
-				addRoutesToZ22Server(z22Server, routes, routePath)
 
-				logger.info(
-					colors.gray("Route `") +
-						colors.italic(colors.blue(routePath)) +
-						colors.gray("` updated")
-				)
-
-				fileToRoutes.set(routePath, routes)
+				await addFile(p)
 			}
 		})
 	})

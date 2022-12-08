@@ -40,7 +40,8 @@
 	"type": "module",
 	"bin": "./cli.js",
 	"exports": {
-		".": "./dist/index.js"
+		".": "./dist/index.js",
+		"./virtual": "./dist/virtual.js"
 	},
 	"types": "dist/core/index.d.ts"
 }

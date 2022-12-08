@@ -3,14 +3,15 @@ import { Z22Server } from "./server"
 import fg from "fast-glob"
 import path from "path"
 import colors from "colors"
-import { Component } from "solid-js"
+import { Component, JSX } from "solid-js"
 import { logger } from "../utils/logger"
+import { generateFuncToGetSimplifiedPathFromFilePath } from "../utils/path"
 
-type LayoutComp = Component
+type LayoutComponent = Component<{ children: JSX.Element }>
 
 export type Layout = {
-	comp: LayoutComp
-	sourceFilePath: string
+	comp: LayoutComponent
+	pages: Map<string, boolean>
 }
 
 export class LayoutManager {
@@ -18,13 +19,13 @@ export class LayoutManager {
 	constructor() {}
 }
 
-const getLayoutNameFromFilePath = (filePathWithExt: string) => {
-	const filePathParsed = path.parse(filePathWithExt)
-	const filePath = filePathParsed.dir + path.sep + filePathParsed.name
-	const filePathArray = filePath.split(path.sep)
-	filePathArray.splice(0, 2)
-	const layoutName = filePathArray.join(filePathArray.join("/"))
-	return layoutName
+const getLayoutNameFromFilePath = generateFuncToGetSimplifiedPathFromFilePath(
+	"layouts",
+	false
+)
+
+export const generateLayoutImportPath = (layoutName: string) => {
+	return `virtual:z22/layout/${layoutName}`
 }
 
 export const startLayouting = async (
@@ -35,27 +36,45 @@ export const startLayouting = async (
 	const layoutManager = new LayoutManager()
 	const files = await fg("src/layouts/**/*.{ts,tsx}", { cwd })
 
-	await Promise.all(files.map(async (filePathWithExt) => {
-		const layoutName = getLayoutNameFromFilePath(filePathWithExt)
-		const layoutComp = (await viteServer.ssrLoadModule(filePathWithExt))
-			.default as LayoutComp
+	await Promise.all(
+		files.map(async (filePathWithExt) => {
+			const layoutName = getLayoutNameFromFilePath(filePathWithExt)
+			if (!layoutName) return
+			const layoutComp = (await viteServer.ssrLoadModule(filePathWithExt))
+				.default as LayoutComponent
 
-		layoutManager.layouts[layoutName] = {
-			comp: layoutComp,
-			sourceFilePath: filePathWithExt,
-		}
+			layoutManager.layouts[layoutName] = {
+				comp: layoutComp,
+				pages: new Map(),
+			}
 
-		logger.info(
-			colors.gray("New layout `") +
-				colors.blue(colors.italic(layoutName)) +
-				colors.gray("` added")
-		)
-	}))
+			logger.info(
+				colors.gray("New layout `") +
+					colors.blue(colors.italic(layoutName)) +
+					colors.gray("` added")
+			)
+		})
+	)
 
-	viteServer.watcher.on("change", (p) => {
+	viteServer.watcher.on("change", async (p) => {
 		const layoutName = getLayoutNameFromFilePath(p)
 
-		console.log(layoutManager)
+		if (layoutName) {
+			const layoutComp = (await viteServer.ssrLoadModule(p))
+				.default as LayoutComponent
+
+			layoutManager.layouts[layoutName].comp = layoutComp
+			layoutManager.layouts[layoutName].pages.forEach(
+				(
+					$$$$$$$$$$$$$ /** I don't know how to name this piece of shit */,
+					pageFilePath
+				) => {
+					if ($$$$$$$$$$$$$) {
+						viteServer.watcher.emit("change", pageFilePath)
+					}
+				}
+			)
+		}
 	})
 
 	return layoutManager

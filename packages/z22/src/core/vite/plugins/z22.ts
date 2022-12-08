@@ -9,8 +9,10 @@ const virtualModuleIdSliceLength = virtualModuleId.length
 const virtualModuleIdSliceLengthProcessed = virtualModuleIdSliceLength + 1
 
 const mapVirtualModuleIdToActualId = {
-	"definePage.tsx": "definePage.tsx",
+	"index.tsx": "index.tsx",
 } as Record<string, string>
+
+export let moduleNeededToBeUpdated = {} as Record<string, boolean>
 
 export const createZ22VitePlugin = (
 	cwd: string
@@ -22,38 +24,6 @@ export const createZ22VitePlugin = (
 		},
 		{
 			name: "z22",
-			resolveId(idUnprocessed) {
-				if (idUnprocessed.startsWith(virtualModuleId)) {
-					const id = idUnprocessed.slice(
-						virtualModuleIdSliceLength,
-						10000
-					)
-
-					if (id.startsWith("layout/")) {
-						const layoutId = id.slice(7, 10000)
-						const layout = layoutMaganger.layouts?.[layoutId]
-						if (layout)
-							return path.resolve(cwd, layout.sourceFilePath)
-					}
-
-					return `\0${idUnprocessed}`
-				}
-			},
-			load(idUnprocessed) {
-				if (idUnprocessed.startsWith(virtualModuleIdProcessed)) {
-					const id = idUnprocessed.slice(
-						virtualModuleIdSliceLengthProcessed,
-						10000
-					)
-					if (mapVirtualModuleIdToActualId[id])
-						return fse
-							.readFileSync(
-								"node_modules/z22/templates/" +
-									mapVirtualModuleIdToActualId[id]
-							)
-							.toString()
-				}
-			},
 		},
 	]
 }

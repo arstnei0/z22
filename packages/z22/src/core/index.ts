@@ -11,6 +11,7 @@ import {
 	loadConfigFromFile,
 	loadEnv,
 	mergeConfig,
+	ViteDevServer,
 } from "vite"
 import z from "zod"
 import { Z22Error } from "../utils/index"
@@ -22,7 +23,7 @@ import {
 import { terminalLogo } from "../utils/logo"
 import { LayoutManager } from "./layouts"
 import { startRouting } from "./routes"
-import { createZ22Server } from "./server/index"
+import { createZ22Server, Z22Server } from "./server/index"
 import { generateTsHelpers } from "./tsconfig"
 import { createAutoImportVitePlugin } from "./vite/plugins/auto-import"
 import { createSolidVitePlugin } from "./vite/plugins/solid"
@@ -47,6 +48,18 @@ const ensureAndClearZ22Directory = async (dir: string) => {
 	await fse.ensureDir(dir)
 	await fse.emptyDir(dir)
 }
+
+export let z22Server: Z22Server = (() => {
+	throw new Z22Error("z22Server is used before being set")
+}) as any
+
+export let viteServer: ViteDevServer = (() => {
+	throw new Z22Error("viteServer is used before being set")
+}) as any
+
+export let layoutManager: LayoutManager = (() => {
+	throw new Z22Error("Layout manager is used before being set")
+}) as any
 
 export const run = async (mode: Mode) => {
 	mode = ModeV.parse(mode)
@@ -93,13 +106,8 @@ export const run = async (mode: Mode) => {
 	if (isDev) {
 		console.log(colors.rainbow(terminalLogo))
 
-		let layoutManager: LayoutManager = (() => {
-			throw new Z22Error(
-				"The layout manager is being used before being set"
-			)
-		}) as any
-
-		const [giveLayoutManagerToZ22VitePlugin, z22VitePlugin] = createZ22VitePlugin(cwd)
+		const [giveLayoutManagerToZ22VitePlugin, z22VitePlugin] =
+			createZ22VitePlugin(cwd)
 
 		const devViteConfig: ViteInlineConfig = {
 			server: {
@@ -110,17 +118,20 @@ export const run = async (mode: Mode) => {
 			plugins: [z22VitePlugin],
 		}
 
-		const viteServer = await createServer(
+		const _viteServer = await createServer(
 			mergeConfig(globalViteConfig, devViteConfig)
 		)
+		viteServer = _viteServer
 
-		const z22Server = createZ22Server({
+		const _z22Server = createZ22Server({
 			port: config.server?.port,
 			wrappers: (internal) => [
 				...internal,
 				viteServer.middlewares.handle,
 			],
 		})
+
+		z22Server = _z22Server
 
 		z22Server.start()
 
@@ -136,4 +147,4 @@ export const run = async (mode: Mode) => {
 }
 
 export type { HttpHandler } from "./server"
-// export { definePage } from "./ssr"
+export { definePage } from "./ssr"

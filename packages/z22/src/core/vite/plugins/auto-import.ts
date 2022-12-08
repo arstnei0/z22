@@ -5,7 +5,7 @@ export const createAutoImportVitePlugin = () =>
 		imports: [
 			"solid-js",
 			{
-				"virtual:z22/definePage.tsx": ["definePage"],
+				"z22": ["definePage"],
 				zod: [["*", "z"]],
 			},
 		],

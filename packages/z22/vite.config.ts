@@ -13,6 +13,8 @@ export default defineConfig({
 		ssr: true,
 		target: "node14",
 		minify: true,
+		rollupOptions: {
+		}
 	},
 	plugins: [
 		solidPlugin({
