@@ -36,7 +36,10 @@ export const definePage = (async (
 	if (layout) {
 		const Layout = layout.comp
 		if (workingPagePath) {
-			layoutManager.layouts[pageMeta.layout as string].pages.set(workingPagePath, true)
+			layoutManager.layouts[pageMeta.layout as string].pages.set(
+				workingPagePath,
+				true
+			)
 		}
 
 		return async (req, res) => {

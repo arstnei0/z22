@@ -52,7 +52,7 @@ export const startRouting = async (
 		cwd: cwd,
 	})
 
-	const addFile = async (filePath: string) => {
+	const addFile = async (filePath: string, eventName: string) => {
 		const routePath = getRoutePathFromFilePath(filePath)
 		if (!routePath) return
 
@@ -72,18 +72,18 @@ export const startRouting = async (
 		logger.info(
 			colors.gray("New route `") +
 				colors.italic(colors.blue(routePath)) +
-				colors.gray("` added")
+				colors.gray("` " + eventName)
 		)
 
 		workingPagePath = ""
 	}
 
 	for (let filePath of files) {
-		await addFile(filePath)
+		await addFile(filePath, 'added')
 	}
 
 	viteServer.watcher.on("add", async (path) => {
-		await addFile(path)
+		await addFile(path, 'added')
 	})
 
 	viteServer.watcher.on("change", async (p) => {
@@ -97,7 +97,7 @@ export const startRouting = async (
 					routePath
 				)
 
-				await addFile(p)
+				await addFile(p, 'updated')
 			}
 		})
 	})

@@ -1,18 +1,35 @@
 import * as process from "node:process"
 import sade from "sade"
 import * as vite from "vite"
-import { Mode, run } from "../core"
+import { createZ22VitePlugin } from "../core"
 
 export default () => {
 	const p = sade("z22")
 
 	p.command("dev", "Start the dev server", {
 		default: true,
-	}).action(() => run(Mode.Development))
+	})
+		.option("-p, --port", "The port of the dev server")
+		.action(async (options) => {
+			const viteSerer = await vite.createServer({
+				plugins: [
+					createZ22VitePlugin({
+						mode: "development",
+						...(options.port && {
+							port: options.port as number,
+						}),
+					}),
+				],
+			})
 
-	p.command("build", "Build the application").action(() =>
-		run(Mode.Production)
-	)
+            viteSerer.listen()
+		})
+
+	p.command("build", "Build the application").action(() => {
+		vite.build({
+			plugins: [createZ22VitePlugin({ mode: "production" })],
+		})
+	})
 
 	p.parse(process.argv)
 }

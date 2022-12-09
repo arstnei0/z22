@@ -65,11 +65,17 @@ export const startLayouting = async (
 
 			layoutManager.layouts[layoutName].comp = layoutComp
 			layoutManager.layouts[layoutName].pages.forEach(
-				(
+				async (
 					$$$$$$$$$$$$$ /** I don't know how to name this piece of shit */,
 					pageFilePath
 				) => {
 					if ($$$$$$$$$$$$$) {
+						const m = await viteServer.moduleGraph.getModuleByUrl(
+							pageFilePath,
+							true
+						)
+						m && viteServer.moduleGraph.invalidateModule(m)
+						// viteServer.moduleGraph.invalidateModule('')
 						viteServer.watcher.emit("change", pageFilePath)
 					}
 				}

@@ -8,5 +8,6 @@
     "solid-js": "^1.6.2",
     "z22": "workspace:*",
     "zod": "^3.19.1"
-  }
+  },
+  "type": "module"
 }
