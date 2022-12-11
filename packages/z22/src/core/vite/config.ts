@@ -5,11 +5,15 @@ export const createVitePluginZ22Config = (options: Options): Plugin => {
 	const env = {} as Record<string, any>
 
 	env.PORT = options.port
+	env.HOST = options.host
+	env.DEV = options.mode === "development" ? true : false
+	env.PROD = options.mode === "production" ? true : false
+	env.MODE = options.mode
 
 	const codeReplacements = Object.entries(env).reduce(
 		(prev, curr) => ({
 			...prev,
-			[`$Z22$.${curr[0]}`]: curr[1],
+			[`$Z22$.env.${curr[0]}`]: JSON.stringify(curr[1]),
 		}),
 		{}
 	)
@@ -26,6 +30,7 @@ export const createVitePluginZ22Config = (options: Options): Plugin => {
 				? {
 						server: {
 							port: options.port,
+							host: options.host,
 						},
 						ssr: {
 							external: ["find-my-way"],
@@ -63,6 +68,11 @@ export const createVitePluginZ22Config = (options: Options): Plugin => {
 							// 	}),
 							// 	{}
 							// ),
+							resolve: {
+								alias: {
+									"#logger": "virtual:z22/utils/logger.ts",
+								},
+							},
 						} as UserConfig,
 						config
 					)
@@ -71,7 +81,7 @@ export const createVitePluginZ22Config = (options: Options): Plugin => {
 		},
 		transform(code, id) {
 			return Object.entries(codeReplacements).reduce(
-				(prev, curr) => (prev as any).replace(curr[0], '3000'),
+				(prev, curr) => (prev as any).replaceAll(curr[0], "3000"),
 				code
 			)
 		},

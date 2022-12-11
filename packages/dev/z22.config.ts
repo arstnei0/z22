@@ -1,3 +1,3 @@
 export default {
-    aaa: 'a'
+	aaa: "a",
 }

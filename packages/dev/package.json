@@ -1,13 +1,13 @@
 {
-  "name": "dev",
-  "private": "true",
-  "scripts": {
-    "dev": "z22"
-  },
-  "dependencies": {
-    "solid-js": "^1.6.2",
-    "z22": "workspace:*",
-    "zod": "^3.19.1"
-  },
-  "type": "module"
+	"name": "dev",
+	"private": "true",
+	"scripts": {
+		"dev": "z22"
+	},
+	"dependencies": {
+		"solid-js": "^1.6.2",
+		"z22": "workspace:*",
+		"zod": "^3.19.1"
+	},
+	"type": "module"
 }
