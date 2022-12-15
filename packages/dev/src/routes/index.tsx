@@ -1,3 +1,3 @@
-export const GET = (req, res) => {
-	res.end("aa")
-}
+export const GET = defineEndpoint((req) => {
+	return new Response("Hello")
+})

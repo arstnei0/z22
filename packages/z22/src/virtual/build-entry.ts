@@ -1,7 +1,7 @@
 import { createServer } from "http"
-import handler from "./entry-server"
+import { httpHandler } from "./entry-server.jsx"
 
-const server = createServer(handler)
+const server = createServer(httpHandler)
 
 // @ts-ignore
 server.listen($Z22$.env.PORT)

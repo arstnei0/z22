@@ -1,5 +1,6 @@
 import { defineConfig } from "vite"
 import solidPlugin from "vite-plugin-solid"
+import dts from "vite-plugin-dts"
 
 export default defineConfig({
 	build: {
@@ -7,11 +8,12 @@ export default defineConfig({
 			entry: {
 				index: "src/core/index.ts",
 				cli: "src/cli/index.ts",
+				virtual: "src/virtual/index.ts",
 			},
 			formats: ["es"],
 		},
 		ssr: true,
-		target: "node14",
+		target: "node16",
 		minify: true,
 		rollupOptions: {},
 	},
@@ -19,6 +21,9 @@ export default defineConfig({
 		solidPlugin({
 			ssr: true,
 		}),
+		// dts({
+		// 	noEmitOnError: true,
+		// 	skipDiagnostics: true,
+		// }),
 	],
-	ssr: {},
 })

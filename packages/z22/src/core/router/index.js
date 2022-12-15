@@ -1,34 +1,11 @@
-import { IncomingMessage, ServerResponse } from "http"
 import path from "path"
 import { z } from "zod"
 import { zenum } from "zenum"
-import type { Promisable } from "type-fest"
-
-export type Route = {
-	id: string
-	path: string
-	api: Partial<Record<ApiMethod, string>>
-}
-
 const API_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH"]
 const ApiMethodV = z.enum(["GET", "POST", "PUT", "DELETE", "PATCH"])
-export type ApiMethod = z.infer<typeof ApiMethodV>
-
-export const Handler = zenum<{
-	fetch: (req: Request) => Promisable<Response>
-	stream: (ctx: Context) => void
-}>()
-export type Handler = typeof Handler.Item
-export type FetchHandler = Parameters<typeof Handler["fetch"]>[0]
-export type StreamHandler = Parameters<typeof Handler["stream"]>[0]
-
-export type Context = {
-	req: IncomingMessage
-	res: ServerResponse
-}
-
+export const Handler = zenum()
 export class Router {
-	routes: Map<string, Route> = new Map()
+	routes = new Map()
 	constructor() {
 		this.routes.set("/", {
 			id: "/",
@@ -38,23 +15,20 @@ export class Router {
 			},
 		})
 	}
-
-	stringifyRoutes(outputName: string) {
+	stringifyRoutes(outputName) {
 		const jsCode = jsFactory()
-
 		const r = [...this.routes.values()]
-
 		const code =
 			`{\n\t` +
 			r
 				.map(
 					(i) =>
 						`"${i.id}": {\n\t\t${[
-							...API_METHODS.filter((j) => i.api[j as ApiMethod]).map(
+							...API_METHODS.filter((j) => i.api[j]).map(
 								(v) =>
 									`${v}: ${jsCode.addNamedImport(
 										v,
-										path.posix.resolve((i.api as any)[v])
+										path.posix.resolve(i.api[v])
 									)}`
 							),
 						]
@@ -63,55 +37,44 @@ export class Router {
 				)
 				.join(",\n") +
 			`\n}`
-
 		const text = `
 ${jsCode.getImportStatements()}
 const ${outputName} = ${code};`
-
 		return text
 	}
 }
-
 function jsFactory() {
-	let imports = new Map<string, any>()
+	let imports = new Map()
 	let vars = 0
-
-	function addImport(p: string) {
+	function addImport(p) {
 		let id = imports.get(p)
 		if (!id) {
 			id = {}
 			imports.set(p, id)
 		}
-
 		let d = "import" + vars++
 		id["default"] = d
 		return d
 	}
-
-	function addNamedImport(name: string, p: string) {
+	function addNamedImport(name, p) {
 		let id = imports.get(p)
 		if (!id) {
 			id = {}
 			imports.set(p, id)
 		}
-
 		let d = "namedImport" + vars++
 		id[name] = d
 		return d
 	}
-
-	const getNamedExport = (p: string) => {
+	const getNamedExport = (p) => {
 		let id = imports.get(p)
-
 		delete id["default"]
-
 		return Object.keys(id).length > 0
 			? `{ ${Object.keys(id)
 					.map((k) => `${k} as ${id[k]}`)
 					.join(", ")} }`
 			: ""
 	}
-
 	const getImportStatements = () => {
 		return `${[...imports.keys()]
 			.map(
@@ -126,7 +89,6 @@ function jsFactory() {
 			)
 			.join("\n")}`
 	}
-
 	return {
 		addImport,
 		addNamedImport,

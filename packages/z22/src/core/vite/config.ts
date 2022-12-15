@@ -61,13 +61,6 @@ export const createVitePluginZ22Config = (options: Options): Plugin => {
 					mergeConfig(
 						{
 							mode: options.mode,
-							// define: Object.entries(env).reduce(
-							// 	(prev, curr) => ({
-							// 		...prev,
-							// 		[`import.meta.env.${curr[0]}`]: curr[1],
-							// 	}),
-							// 	{}
-							// ),
 							resolve: {
 								alias: {
 									"#logger": "virtual:z22/utils/logger.ts",
